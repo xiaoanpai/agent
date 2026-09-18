@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
 // 数据库
@@ -27,7 +27,6 @@ const server = new McpServer({
 });
 
 // 注册工具：查询用户信息
-
 server.registerTool(
   "query_user",
   {
@@ -84,5 +83,6 @@ server.registerResource(
   },
 );
 
-const transport = new StdioClientTransport();
+// ✅ 修复：用服务端的 StdioServerTransport
+const transport = new StdioServerTransport();
 await server.connect(transport);
