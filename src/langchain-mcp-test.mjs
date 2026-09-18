@@ -3,7 +3,11 @@ import "dotenv/config";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import { ChatOpenAI } from "@langchain/openai";
 import chalk from "chalk";
-import { HumanMessage, ToolMessage } from "@langchain/core/messages";
+import {
+  HumanMessage,
+  SystemMessage,
+  ToolMessage,
+} from "@langchain/core/messages";
 
 const model = new ChatOpenAI({
   modelName: process.env.MODEL_ENV || "qwen3.8-27b",
@@ -29,10 +33,14 @@ const tools = await mcpClients.getTools();
 const modelWithTools = model.bindTools(tools);
 
 async function runAgentWithTools(query, maxIterations = 30) {
-  const messages = [new HumanMessage(query)];
+  console.log("2");
+  const messages = [
+    new SystemMessage(resourceContent),
+    new HumanMessage(query),
+  ];
 
   for (let i = 0; i < maxIterations; i++) {
-    console.log(chalk.bgBlueBright("等待 AI思考"));
+    console.log(chalk.bgBlueBright("等待 AI思考" + resourceContent));
     const response = await modelWithTools.invoke(messages);
     messages.push(response);
 
@@ -62,5 +70,17 @@ async function runAgentWithTools(query, maxIterations = 30) {
   return messages[messages.length - 1].content;
 }
 
-await runAgentWithTools("查一下用户002的信息");
-// await mcpClients.close();
+const res = await mcpClients.listResources();
+console.log(res);
+let resourceContent = "";
+for (const [serverName, resources] of Object.entries(res)) {
+  console.log(chalk.bgBlueBright("等待 AI思考" + 111111));
+  for (const resource of resources) {
+    const content = await mcpClients.readResource(serverName, resource.uri);
+    console.log(content);
+    resourceContent += content[0].text;
+  }
+}
+await runAgentWithTools("MCP server 的使用指南是什么");
+// await runAgentWithTools("查一下用户001的信息");
+await mcpClients.close();
